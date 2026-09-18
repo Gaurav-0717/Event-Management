@@ -22,20 +22,44 @@ const DashboardPage = () => {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
 
+  // ------------------------------------------------------------
+  // Load user's events
+  // ------------------------------------------------------------
+
   useEffect(() => {
     const loadEvents = async () => {
+      // Dashboard uses protected event data.
+      // Do not request events when the user is logged out.
+      if (!currentUser) {
+        setEvents([]);
+        setLoadingEvents(false);
+        return;
+      }
+
       try {
+        setLoadingEvents(true);
+
         const data = await fetchEvents();
-        setEvents(data.events || []);
+
+        const eventList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.events)
+            ? data.events
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
+
+        setEvents(eventList);
       } catch (error) {
         console.error("Failed to load events:", error);
+        setEvents([]);
       } finally {
         setLoadingEvents(false);
       }
     };
 
     loadEvents();
-  }, []);
+  }, [currentUser]);
 
   const details = [
     {
@@ -139,7 +163,7 @@ const DashboardPage = () => {
               Loading State
           =================================================== */}
 
-          {loadingEvents && (
+          {loadingEvents && currentUser && (
             <div className="py-14 text-center">
               <div className="inline-flex items-center gap-2 text-slate-500">
                 <div className="w-4 h-4 rounded-full border-2 border-slate-300 border-t-indigo-600 animate-spin" />
@@ -152,7 +176,7 @@ const DashboardPage = () => {
               Empty State
           =================================================== */}
 
-          {!loadingEvents && events.length === 0 && (
+          {!loadingEvents && events.length === 0 && currentUser && (
             <div className="py-14 px-6 text-center border border-dashed border-slate-300 rounded-2xl bg-slate-50">
               <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mx-auto mb-5">
                 <Sparkles className="w-7 h-7" />
