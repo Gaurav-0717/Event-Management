@@ -38,6 +38,14 @@ const HomePage = () => {
 
   useEffect(() => {
     const loadEvents = async () => {
+      // Do not request private events when the user is logged out.
+      if (!currentUser) {
+        setEvents([]);
+        setError("");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError("");
@@ -57,8 +65,8 @@ const HomePage = () => {
         console.error("Failed to load events:", err);
 
         setError(
-          err?.response?.data?.message ||
-            err?.message ||
+          err?.message ||
+            err?.response?.data?.message ||
             "Unable to load your events.",
         );
       } finally {
@@ -67,7 +75,7 @@ const HomePage = () => {
     };
 
     loadEvents();
-  }, []);
+  }, [currentUser]);
 
   // ------------------------------------------------------------
   // User name
@@ -164,7 +172,6 @@ const HomePage = () => {
   const nextEvent = useMemo(() => {
     return [...upcomingEvents].sort((a, b) => {
       const dateA = getEventDate(a)?.getTime() || Infinity;
-
       const dateB = getEventDate(b)?.getTime() || Infinity;
 
       return dateA - dateB;
@@ -179,7 +186,6 @@ const HomePage = () => {
     return [...events]
       .sort((a, b) => {
         const dateA = getEventDate(a)?.getTime() || 0;
-
         const dateB = getEventDate(b)?.getTime() || 0;
 
         return dateB - dateA;
