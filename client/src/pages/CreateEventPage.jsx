@@ -153,7 +153,7 @@ const CreateEventPage = () => {
                   name="title"
                   value={form.title}
                   onChange={handleChange}
-                  placeholder="e.g. Gaurav & Priya Wedding"
+                  placeholder="e.g. Annual College Fest 2026"
                   required
                   minLength={3}
                   maxLength={120}
