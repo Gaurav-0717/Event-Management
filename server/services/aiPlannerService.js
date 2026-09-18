@@ -26,6 +26,10 @@ if (!apiKey) {
 // Keep retries limited so we can move to the fallback model quickly.
 const MAX_RETRIES_PER_MODEL = 2;
 
+// Each model attempt must leave enough time for the configured retry and
+// fallback sequence to finish within the frontend's 120 second AI timeout.
+const AI_REQUEST_TIMEOUT_MS = 25000;
+
 // Delay before retrying the same model.
 const RETRY_DELAYS = [2500, 5000];
 
@@ -79,16 +83,28 @@ const isRetryableAIError = (error) => {
     message.includes("rate limit") ||
     message.includes("temporarily") ||
     message.includes("timeout") ||
+    message.includes("aborted") ||
     message.includes("overloaded") ||
     message.includes("try again later")
   );
 };
+
+const isRequestTimeoutError = (error) =>
+  error?.name === "AbortError" || getErrorMessage(error).includes("aborted");
 
 // ============================================================
 // NORMALIZE GEMINI ERROR
 // ============================================================
 
 const createAIError = (error, fallbackMessage) => {
+  if (isRequestTimeoutError(error)) {
+    const timeoutError = new Error(
+      "AI request timed out. Please try generating the plan again.",
+    );
+    timeoutError.statusCode = 504;
+    return timeoutError;
+  }
+
   const status = getErrorStatus(error);
 
   const message =
@@ -153,6 +169,7 @@ const generateWithRetry = async ({ prompt, schema, operationName }) => {
           contents: prompt,
 
           config: {
+            abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
             maxOutputTokens: 4000,
 
             thinkingConfig: {

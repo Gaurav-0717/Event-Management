@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Event = require("../models/Event");
 const Vendor = require("../models/Vendor");
 const EventPlan = require("../models/EventPlan");
+const EventBudget = require("../models/EventBudget");
 const EventTask = require("../models/EventTask");
 
 /**
@@ -196,6 +197,13 @@ const deleteUser = async (req, res, next) => {
       });
     }
 
+    // Remove budgets belonging to those events before deleting the events.
+    if (eventIds.length > 0) {
+      await EventBudget.deleteMany({
+        event: { $in: eventIds },
+      });
+    }
+
     // Remove events owned by user
     await Event.deleteMany({
       user: user._id,
@@ -308,6 +316,11 @@ const deleteAdminEvent = async (req, res, next) => {
 
     // Delete related AI event plan
     await EventPlan.deleteMany({
+      event: event._id,
+    });
+
+    // Delete the event's optimized budget.
+    await EventBudget.deleteMany({
       event: event._id,
     });
 

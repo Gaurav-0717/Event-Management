@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Event = require("../models/Event");
 const EventBudget = require("../models/EventBudget");
 
@@ -230,6 +231,13 @@ const calculateBudget = (event) => {
 const generateBudget = async (req, res) => {
   const { eventId } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid event ID.",
+    });
+  }
+
   try {
     const event = await Event.findOne({
       _id: eventId,
@@ -252,8 +260,19 @@ const generateBudget = async (req, res) => {
 
     const budget = calculateBudget(event);
 
+    const strategyMap = {
+      Budget: "Budget Focused",
+      "Guest Experience": "Guest Experience",
+      Food: "Food Priority",
+      Decoration: "Decoration Priority",
+      Entertainment: "Entertainment Priority",
+      Balanced: "Balanced",
+    };
+
     const optimizationStrategy =
-      event.planningPreferences?.priority || "Balanced";
+      strategyMap[event.planningPreferences?.priority] ||
+      event.planningPreferences?.priority ||
+      "Balanced";
 
     const savedBudget = await EventBudget.findOneAndUpdate(
       {
@@ -296,6 +315,13 @@ const generateBudget = async (req, res) => {
 // Get existing budget
 const getBudget = async (req, res) => {
   const { eventId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid event ID.",
+    });
+  }
 
   try {
     const budget = await EventBudget.findOne({
@@ -343,6 +369,13 @@ const getBudget = async (req, res) => {
 const updateBudget = async (req, res) => {
   const { eventId } = req.params;
   const { categories } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid event ID.",
+    });
+  }
 
   try {
     if (!Array.isArray(categories) || categories.length === 0) {
@@ -393,7 +426,12 @@ const updateBudget = async (req, res) => {
     const submittedCategories = new Set();
 
     const updatedCategories = categories.map((item) => {
-      const category = String(item.category || "").trim();
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        throw new Error("Every budget category must be a valid object.");
+      }
+
+      const category =
+        typeof item.category === "string" ? item.category.trim() : "";
 
       if (!category) {
         throw new Error("Every budget category must have a name.");
@@ -408,6 +446,17 @@ const updateBudget = async (req, res) => {
       }
 
       submittedCategories.add(category);
+
+      // `Number(null)` and `Number("")` both equal zero, which would make a
+      // missing value look like a deliberate zero allocation.
+      if (
+        item.allocatedAmount === null ||
+        item.allocatedAmount === undefined ||
+        (typeof item.allocatedAmount === "string" &&
+          !item.allocatedAmount.trim())
+      ) {
+        throw new Error(`Invalid allocated amount for ${category}.`);
+      }
 
       const amount = Number(item.allocatedAmount);
 
@@ -480,6 +529,7 @@ const updateBudget = async (req, res) => {
       error.message?.startsWith("Invalid budget category") ||
       error.message?.startsWith("Duplicate budget category") ||
       error.message?.startsWith("Invalid allocated amount") ||
+      error.message?.startsWith("Every budget category must be a valid object") ||
       error.message?.startsWith("Every budget category") ||
       error.message?.startsWith("All existing budget categories")
     ) {

@@ -5,7 +5,9 @@ export const generateAITasks = async (eventId) => {
     `/ai-tasks/${eventId}/generate`,
     {},
     {
-      timeout: 60000,
+      // Match AI plan generation: server-side retries and fallback can take
+      // longer than ordinary API calls.
+      timeout: 120000,
     },
   );
 

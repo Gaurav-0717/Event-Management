@@ -1,4 +1,7 @@
 const Event = require("../models/Event");
+const EventPlan = require("../models/EventPlan");
+const EventBudget = require("../models/EventBudget");
+const EventTask = require("../models/EventTask");
 
 const getUserEvents = async (req, res) => {
   const events = await Event.find({
@@ -126,7 +129,7 @@ const updateEvent = async (req, res, next) => {
 
 const deleteEvent = async (req, res, next) => {
   try {
-    const event = await Event.findOneAndDelete({
+    const event = await Event.findOne({
       _id: req.params.id,
       user: req.user._id,
     });
@@ -135,6 +138,16 @@ const deleteEvent = async (req, res, next) => {
       res.status(404);
       return next(new Error("Event not found"));
     }
+
+    // Keep event-owned planning records from becoming orphaned. The same
+    // cleanup is performed by the admin deletion paths.
+    await Promise.all([
+      EventPlan.deleteMany({ event: event._id }),
+      EventBudget.deleteMany({ event: event._id }),
+      EventTask.deleteMany({ event: event._id }),
+    ]);
+
+    await event.deleteOne();
 
     return res.status(200).json({
       success: true,

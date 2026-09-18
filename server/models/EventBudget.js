@@ -82,10 +82,14 @@ const eventBudgetSchema = new mongoose.Schema(
     optimizationStrategy: {
       type: String,
       enum: [
+        "Budget",
         "Budget Focused",
         "Guest Experience",
+        "Food",
         "Food Priority",
+        "Decoration",
         "Decoration Priority",
+        "Entertainment",
         "Entertainment Priority",
         "Balanced",
       ],
