@@ -23,6 +23,7 @@ import {
 
 import { fetchEvent, deleteEvent } from "../services/eventService";
 import { downloadEventDossier } from "../services/dossierService";
+import AIAssistant from "../components/AIAssistant";
 
 const EventDetailsPage = () => {
   const { id: eventId } = useParams();
@@ -212,9 +213,13 @@ const EventDetailsPage = () => {
 
   const statusStyles = {
     Draft: "bg-amber-50 text-amber-700 border-amber-200",
+
     Planning: "bg-indigo-50 text-indigo-700 border-indigo-200",
+
     Confirmed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+
     Completed: "bg-slate-100 text-slate-700 border-slate-200",
+
     Cancelled: "bg-red-50 text-red-700 border-red-200",
   };
 
@@ -262,6 +267,7 @@ const EventDetailsPage = () => {
           <div className="p-6 md:p-8">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
               {/* Event Title */}
+
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
                   <PartyPopper className="text-indigo-600" size={28} />
@@ -293,6 +299,7 @@ const EventDetailsPage = () => {
               </div>
 
               {/* Actions */}
+
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => navigate(`/events/${eventId}/edit`)}
@@ -428,9 +435,7 @@ const EventDetailsPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* ==================================================
-                AI Plan
-            ================================================== */}
+            {/* AI Plan */}
 
             <PlanningToolCard
               icon={<Sparkles size={25} />}
@@ -442,9 +447,7 @@ const EventDetailsPage = () => {
               onClick={() => navigate(`/events/${eventId}/ai-plan`)}
             />
 
-            {/* ==================================================
-                Budget
-            ================================================== */}
+            {/* Budget */}
 
             <PlanningToolCard
               icon={<TrendingUp size={25} />}
@@ -456,9 +459,7 @@ const EventDetailsPage = () => {
               onClick={() => navigate(`/events/${eventId}/budget`)}
             />
 
-            {/* ==================================================
-                Timeline
-            ================================================== */}
+            {/* Timeline */}
 
             <PlanningToolCard
               icon={<CheckSquare size={25} />}
@@ -470,9 +471,7 @@ const EventDetailsPage = () => {
               onClick={() => navigate(`/events/${eventId}/timeline`)}
             />
 
-            {/* ==================================================
-                Vendors
-            ================================================== */}
+            {/* Vendors */}
 
             <PlanningToolCard
               icon={<Store size={25} />}
@@ -540,6 +539,12 @@ const EventDetailsPage = () => {
           </button>
         </div>
       </div>
+
+      {/* ========================================================
+          Floating EventWise AI Assistant
+      ======================================================== */}
+
+      <AIAssistant eventId={eventId} />
     </div>
   );
 };

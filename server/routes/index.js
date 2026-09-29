@@ -9,6 +9,7 @@ const eventTaskRoutes = require("./eventTaskRoutes");
 const aiTaskRoutes = require("./aiTaskRoutes");
 const vendorRoutes = require("./vendorRoutes");
 const adminRoutes = require("./adminRoutes");
+const aiAssistantRoutes = require("./aiAssistantRoutes");
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use("/events", eventTaskRoutes);
 router.use("/ai-tasks", aiTaskRoutes);
 router.use("/vendors", vendorRoutes);
 router.use("/admin", adminRoutes);
+router.use("/ai-assistant", aiAssistantRoutes);
 
 module.exports = router;
